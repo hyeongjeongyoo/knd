@@ -10,25 +10,25 @@ import java.util.List;
 public class MenuDto {
     private Long id;
     private Long parentId;
-    
+
     @NotBlank(message = "메뉴명은 필수 입력값입니다.")
     @Size(max = 100, message = "메뉴명은 100자 이내여야 합니다.")
     private String name;
-    
+
     @Size(max = 200, message = "메뉴 URL은 200자 이내여야 합니다.")
     private String url;
-    
+
     private Integer sortOrder;
     private Boolean visible;
     private MenuType type;
-    
+
     // 트리 구조를 위한 필드
     private List<MenuDto> children;
-    
+
     // 메뉴 연결 정보
     private Long targetId;
     private String displayPosition;
-    
+
     // 메타 정보
     private String createdBy;
     private String updatedBy;
@@ -50,14 +50,7 @@ public class MenuDto {
     private String menuPermission;
     private String menuVisible;
     private String menuSort;
-    private String menuCache;
-    private String menuAuth;
-    private String menuLog;
-    private String menuStatus;
-    private String menuCreated;
-    private String menuModified;
-    private String menuDeleted;
-    private String menuVersion;
+    // 추가 메타 정보 (필요시 사용)
     private String menuRemark;
 
     // 추가된 getter/setter 메서드들
@@ -93,4 +86,4 @@ public class MenuDto {
         this.visible = visible;
         this.menuVisible = visible != null ? (visible ? "Y" : "N") : "Y";
     }
-} 
+}

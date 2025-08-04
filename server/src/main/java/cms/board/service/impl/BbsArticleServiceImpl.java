@@ -99,15 +99,25 @@ public class BbsArticleServiceImpl implements BbsArticleService {
         log.debug("[createArticle] Received mediaFiles count: {}", mediaFiles != null ? mediaFiles.size() : 0);
         log.debug("[createArticle] Received attachments count: {}", attachments != null ? attachments.size() : 0);
 
+        // 🔍 디버깅: 요청된 ID 확인
+        log.error("[createArticle] 🔍 DEBUG - Requested bbsId: {}, menuId: {}", articleDto.getBbsId(),
+                articleDto.getMenuId());
+
         BbsMasterDomain bbsMaster = bbsMasterRepository.findById(articleDto.getBbsId())
-                .orElseThrow(() -> new BbsMasterNotFoundException(articleDto.getBbsId()));
+                .orElseThrow(() -> {
+                    log.error("[createArticle] ❌ BbsMaster not found with ID: {}", articleDto.getBbsId());
+                    return new BbsMasterNotFoundException(articleDto.getBbsId());
+                });
 
         if (attachments != null && !attachments.isEmpty()) {
             validateFilePolicy(bbsMaster, attachments);
         }
 
         Menu menu = menuRepository.findById(articleDto.getMenuId())
-                .orElseThrow(() -> new RuntimeException("Menu not found with id: " + articleDto.getMenuId()));
+                .orElseThrow(() -> {
+                    log.error("[createArticle] ❌ Menu not found with ID: {}", articleDto.getMenuId());
+                    return new RuntimeException("Menu not found with id: " + articleDto.getMenuId());
+                });
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String writer = (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName()))

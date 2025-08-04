@@ -44,7 +44,7 @@ public class BbsArticleDto {
     @NotBlank(message = "내용은 필수 입력값입니다.")
     private String content;
 
-    @Schema(description = "공지 상태", example = "N", allowableValues = {"N", "Y", "P"})
+    @Schema(description = "공지 상태", example = "N", allowableValues = { "N", "Y", "P" })
     private String noticeState;
 
     @Schema(description = "공지 시작일")
@@ -53,7 +53,7 @@ public class BbsArticleDto {
     @Schema(description = "공지 종료일")
     private LocalDateTime noticeEndDt;
 
-    @Schema(description = "게시 상태", example = "Y", allowableValues = {"N", "Y", "P"})
+    @Schema(description = "게시 상태", example = "Y", allowableValues = { "N", "Y", "P" })
     private String publishState;
 
     @Schema(description = "게시 시작일")
@@ -93,4 +93,16 @@ public class BbsArticleDto {
 
     @Schema(description = "순번")
     private Integer no;
-} 
+
+    @Schema(description = "게시 일시")
+    private LocalDateTime postedAt;
+
+    @Schema(description = "표시용 작성자")
+    private String displayWriter;
+
+    @Schema(description = "카테고리 ID 목록")
+    private List<Long> categoryIds;
+
+    @Schema(description = "카테고리 목록")
+    private List<BbsCategoryDto> categories;
+}

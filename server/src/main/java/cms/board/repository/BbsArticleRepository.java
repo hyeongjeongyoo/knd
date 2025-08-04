@@ -62,4 +62,31 @@ public interface BbsArticleRepository extends JpaRepository<BbsArticleDomain, Lo
         @Query("SELECT count(a) FROM BbsArticleDomain a WHERE a.bbsMaster.bbsId = :bbsId AND a.menu.id = :menuId AND (a.title LIKE %:keyword% OR a.content LIKE %:keyword% OR a.writer LIKE %:keyword% OR FUNCTION('TO_CHAR', a.createdAt, 'YYYY-MM-DD') LIKE %:keyword%) AND a.publishState IN ('Y', 'P') AND a.noticeState <> :noticeState")
         long countByBbsIdAndMenuIdAndKeywordAndNoticeStateNot(@Param("bbsId") Long bbsId, @Param("menuId") Long menuId,
                         @Param("keyword") String keyword, @Param("noticeState") String noticeState);
+
+        /**
+         * 카테고리 ID로 필터링된 게시글 조회 (모든 상태)
+         */
+        @Query("SELECT DISTINCT a FROM BbsArticleDomain a " +
+                        "JOIN a.categories ac " +
+                        "WHERE a.bbsMaster.bbsId = :bbsId AND a.menu.id = :menuId AND ac.category.categoryId = :categoryId "
+                        +
+                        "ORDER BY a.noticeState DESC, a.createdAt DESC")
+        Page<BbsArticleDomain> findAllByBbsIdAndMenuIdAndCategoryId(@Param("bbsId") Long bbsId,
+                        @Param("menuId") Long menuId,
+                        @Param("categoryId") Long categoryId,
+                        Pageable pageable);
+
+        /**
+         * 카테고리 ID로 필터링된 게시글 조회 (게시된 상태만)
+         */
+        @Query("SELECT DISTINCT a FROM BbsArticleDomain a " +
+                        "JOIN a.categories ac " +
+                        "WHERE a.bbsMaster.bbsId = :bbsId AND a.menu.id = :menuId AND ac.category.categoryId = :categoryId "
+                        +
+                        "AND a.publishState IN ('Y', 'P') " +
+                        "ORDER BY a.noticeState DESC, a.createdAt DESC")
+        Page<BbsArticleDomain> findPublishedByBbsIdAndMenuIdAndCategoryId(@Param("bbsId") Long bbsId,
+                        @Param("menuId") Long menuId,
+                        @Param("categoryId") Long categoryId,
+                        Pageable pageable);
 }

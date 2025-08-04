@@ -8,57 +8,69 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "bbs_category")
+@Table(name = "bbs_category", indexes = {
+        @Index(name = "IDX_CATEGORY_SORT", columnList = "BBS_ID, SORT_ORDER, DISPLAY_YN")
+}, uniqueConstraints = {
+        @UniqueConstraint(name = "UK_BBS_CATEGORY_CODE", columnNames = { "BBS_ID", "CODE" })
+})
 @Getter
+@Setter
 @Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
 public class BbsCategoryDomain {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "CATEGORY_ID")
     private Long categoryId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bbs_id", nullable = false)
+    @JoinColumn(name = "BBS_ID", nullable = false)
     private BbsMasterDomain bbsMaster;
 
-    @Column(nullable = false, length = 50)
+    @Column(name = "CODE", nullable = false, length = 50)
     private String code;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "NAME", nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false)
-    private int sortOrder;
+    @Column(name = "SORT_ORDER")
+    @Builder.Default
+    private Integer sortOrder = 0;
 
-    @Column(nullable = false, length = 1)
-    private String displayYn;
+    @Column(name = "DISPLAY_YN", length = 1)
+    @Builder.Default
+    private String displayYn = "Y";
 
-    @Column(length = 36)
+    @Column(name = "CREATED_BY", length = 36)
     private String createdBy;
 
-    @Column(length = 45)
+    @Column(name = "CREATED_IP", length = 45)
     private String createdIp;
 
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(name = "CREATED_AT", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(length = 36)
+    @Column(name = "UPDATED_BY", length = 36)
     private String updatedBy;
 
-    @Column(length = 45)
+    @Column(name = "UPDATED_IP", length = 45)
     private String updatedIp;
 
     @UpdateTimestamp
-    @Column(nullable = false)
+    @Column(name = "UPDATED_AT", nullable = false)
     private LocalDateTime updatedAt;
 
-    public void update(String code, String name, int sortOrder, String displayYn) {
-        this.code = code;
-        this.name = name;
-        this.sortOrder = sortOrder;
-        this.displayYn = displayYn;
+    public void update(String code, String name, Integer sortOrder, String displayYn) {
+        if (code != null)
+            this.code = code;
+        if (name != null)
+            this.name = name;
+        if (sortOrder != null)
+            this.sortOrder = sortOrder;
+        if (displayYn != null)
+            this.displayYn = displayYn;
     }
-} 
+}

@@ -99,7 +99,8 @@ public class SecurityConfig {
 				"/api/v1/cms/bbs/**",
 				"/api/v1/cms/schedule/**",
 				"/api/v1/cms/enterprises",
-				"/api/v1/cms/enterprises/{id}");
+				"/api/v1/cms/enterprises/{id}",
+				"/api/v1/cms/menu");
 
 		for (String pattern : getOnlyPatterns) {
 			matchers.add(new AntPathRequestMatcher(pattern, HttpMethod.GET.toString()));
@@ -134,8 +135,10 @@ public class SecurityConfig {
 						.antMatchers(
 								HttpMethod.POST, "/api/v1/cms/payments/**")
 						.hasAnyRole("ADMIN", "SYSTEM_ADMIN")
+						.antMatchers(HttpMethod.POST, "/api/v1/cms/menu").authenticated()
+						.antMatchers(HttpMethod.PUT, "/api/v1/cms/menu/**").authenticated()
+						.antMatchers(HttpMethod.DELETE, "/api/v1/cms/menu/**").authenticated()
 						.antMatchers(
-								"/api/v1/cms/menu",
 								"/api/v1/cms/menu/type/**",
 								"/api/v1/cms/bbs/master/**",
 								"/api/v1/cms/content",

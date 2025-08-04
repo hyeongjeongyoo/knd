@@ -8,14 +8,16 @@ import javax.persistence.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "bbs_article", indexes = {
-    @Index(name = "IDX_BBS_ARTICLE_BBS_ID", columnList = "bbs_id"),
-    @Index(name = "IDX_BBS_ARTICLE_PARENT_NTT_ID", columnList = "parent_ntt_id"),
-    @Index(name = "IDX_BBS_ARTICLE_NOTICE_STATE", columnList = "notice_state"),
-    @Index(name = "IDX_BBS_ARTICLE_PUBLISH_STATE", columnList = "publish_state"),
-    @Index(name = "IDX_BBS_ARTICLE_CONTENT", columnList = "content")
+        @Index(name = "IDX_BBS_ARTICLE_BBS_ID", columnList = "bbs_id"),
+        @Index(name = "IDX_BBS_ARTICLE_PARENT_NTT_ID", columnList = "parent_ntt_id"),
+        @Index(name = "IDX_BBS_ARTICLE_NOTICE_STATE", columnList = "notice_state"),
+        @Index(name = "IDX_BBS_ARTICLE_PUBLISH_STATE", columnList = "publish_state"),
+        @Index(name = "IDX_BBS_ARTICLE_CONTENT", columnList = "content")
 })
 @Getter
 @Builder
@@ -98,10 +100,19 @@ public class BbsArticleDomain {
     @JoinColumn(name = "menu_id", nullable = false)
     private cms.menu.domain.Menu menu;
 
+    @Column
+    private LocalDateTime postedAt;
+
+    @Column(length = 50)
+    private String displayWriter;
+
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BbsArticleCategoryDomain> categories = new ArrayList<>();
+
     public void update(String writer, String title, String content, String noticeState,
-                      LocalDateTime noticeStartDt, LocalDateTime noticeEndDt, String publishState,
-                      LocalDateTime publishStartDt, LocalDateTime publishEndDt, String externalLink,
-                      boolean hasImage) {
+            LocalDateTime noticeStartDt, LocalDateTime noticeEndDt, String publishState,
+            LocalDateTime publishStartDt, LocalDateTime publishEndDt, String externalLink,
+            boolean hasImage, LocalDateTime postedAt, String displayWriter) {
         if (publishStartDt != null && publishEndDt != null && publishEndDt.isBefore(publishStartDt)) {
             throw new IllegalArgumentException("게시 종료일은 게시 시작일보다 이후여야 합니다.");
         }
@@ -125,13 +136,21 @@ public class BbsArticleDomain {
         this.publishEndDt = publishEndDt;
         this.externalLink = externalLink;
         this.hasImageInContent = hasImage;
+        this.postedAt = postedAt;
+        this.displayWriter = displayWriter;
     }
 
     public void increaseHits() {
         this.hits++;
     }
 
+    public void updateHits(Integer hits) {
+        if (hits != null && hits >= 0) {
+            this.hits = hits;
+        }
+    }
+
     public void setContent(String content) {
         this.content = content;
     }
-} 
+}
