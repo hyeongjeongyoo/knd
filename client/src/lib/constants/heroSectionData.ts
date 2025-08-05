@@ -94,7 +94,7 @@ export const HERO_DATA: Record<string, HeroPageData> = {
   // 게시판 관련 페이지들 (완전 통합)
   "/bbs": {
     title: "BOARD",
-    subtitle: "케이앤디에너젠의 게시판입니다",
+    subtitle: "K&D ENERGEN의 게시판입니다",
     backgroundImage: "/images/sub/privacy_bg.jpg",
     height: "600px",
     menuItems: [
@@ -105,8 +105,8 @@ export const HERO_DATA: Record<string, HeroPageData> = {
   },
 
   "/bbs/notices": {
-    title: "공지사항",
-    subtitle: "케이앤디에너젠의 공지사항을 확인하세요",
+    title: "PR",
+    subtitle: "K&D ENERGEN의 공지사항을 확인하세요",
     backgroundImage: "/images/sub/privacy_bg.jpg",
     height: "600px",
     menuItems: [
@@ -117,8 +117,8 @@ export const HERO_DATA: Record<string, HeroPageData> = {
   },
 
   "/bbs/resources": {
-    title: "뉴스/보도자료",
-    subtitle: "케이앤디에너젠의 최신 소식을 전해드립니다",
+    title: "PR",
+    subtitle: "K&D ENERGEN의 최신 소식을 전해드립니다",
     backgroundImage: "/images/sub/privacy_bg.jpg",
     height: "600px",
     menuItems: [
@@ -130,7 +130,7 @@ export const HERO_DATA: Record<string, HeroPageData> = {
 
   "/bbs/ir": {
     title: "IR",
-    subtitle: "케이앤디에너젠의 IR 정보를 확인하세요",
+    subtitle: "K&D ENERGEN의 IR 정보를 확인하세요",
     backgroundImage: "/images/sub/privacy_bg.jpg",
     height: "600px",
     menuItems: [
