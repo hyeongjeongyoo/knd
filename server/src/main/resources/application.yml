@@ -5,7 +5,6 @@ spring:
     processing: true
   sql:
     init:
-      mode: always # data.sql 파일을 항상 실행
       continue-on-error: true # 에러가 있어도 계속 진행
   servlet:
     multipart:
@@ -248,4 +247,4 @@ management:
       prometheus:
         enabled: true
 cors:
-  allowed-origins: ${GLOBALS_ALLOW_ORIGIN:https://arpina-cms-bnxm.vercel.app}
+  allowed-origins: ${GLOBALS_ALLOW_ORIGIN}

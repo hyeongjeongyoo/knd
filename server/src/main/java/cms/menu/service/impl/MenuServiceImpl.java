@@ -54,7 +54,7 @@ public class MenuServiceImpl implements MenuService {
                 .sortOrder(menuDto.getSortOrder())
                 .parentId(parentId)
                 .build();
-        
+
         Menu savedMenu = menuRepository.save(menu);
         return convertToDto(savedMenu);
     }
@@ -64,7 +64,7 @@ public class MenuServiceImpl implements MenuService {
     public MenuDto updateMenu(Long id, MenuDto menuDto) {
         Menu menu = menuRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Menu not found: " + id));
-        
+
         // 이름 중복 체크 제거하고 필드 업데이트
         menu.setName(menuDto.getName());
         menu.setUrl(menuDto.getUrl());
@@ -73,14 +73,14 @@ public class MenuServiceImpl implements MenuService {
         menu.setSortOrder(menuDto.getSortOrder());
         menu.setDisplayPosition(menuDto.getDisplayPosition());
         menu.setTargetId(menuDto.getTargetId());
-        
+
         // 부모 ID 유효성 검사
         Long parentId = menuDto.getParentId();
         if (parentId != null && (parentId <= 0 || !menuRepository.existsById(parentId))) {
             parentId = null;
         }
         menu.setParentId(parentId);
-        
+
         return convertToDto(menuRepository.save(menu));
     }
 
@@ -129,7 +129,7 @@ public class MenuServiceImpl implements MenuService {
     public void updateMenuActive(Long id, boolean visible) {
         Menu menu = menuRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Menu not found"));
-        
+
         menu.setVisible(visible);
         menuRepository.save(menu);
     }
@@ -139,7 +139,7 @@ public class MenuServiceImpl implements MenuService {
     public void updateMenuOrder(Long id, int sortOrder) {
         Menu menu = menuRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Menu not found"));
-        
+
         menu.setSortOrder(sortOrder);
         menuRepository.save(menu);
     }
@@ -148,15 +148,15 @@ public class MenuServiceImpl implements MenuService {
     @Transactional
     public List<MenuDto> updateMenuOrders(List<MenuOrderDto> orders) {
         List<Menu> updatedMenus = new ArrayList<>();
-        
+
         for (MenuOrderDto order : orders) {
             Menu menu = menuRepository.findById(order.getId())
                     .orElseThrow(() -> new RuntimeException("Menu not found: " + order.getId()));
-            
+
             if (order.getTargetId() != null) {
                 Menu targetMenu = menuRepository.findById(order.getTargetId())
                         .orElseThrow(() -> new RuntimeException("Target menu not found: " + order.getTargetId()));
-                
+
                 switch (order.getPosition()) {
                     case "before":
                         menu.setSortOrder(targetMenu.getSortOrder() - 1);
@@ -176,10 +176,10 @@ public class MenuServiceImpl implements MenuService {
                 menu.setParentId(null);
                 menu.setSortOrder(0);
             }
-            
+
             updatedMenus.add(menuRepository.save(menu));
         }
-        
+
         // 순서 재정렬
         List<Menu> allMenus = menuRepository.findAll();
         for (Menu menu : allMenus) {
@@ -187,18 +187,18 @@ public class MenuServiceImpl implements MenuService {
                 updateSortOrder(menu, allMenus);
             }
         }
-        
+
         return updatedMenus.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
-    
+
     private void updateSortOrder(Menu menu, List<Menu> allMenus) {
         List<Menu> siblings = allMenus.stream()
                 .filter(m -> m.getParentId() == menu.getParentId())
                 .sorted(Comparator.comparing(Menu::getSortOrder))
                 .collect(Collectors.toList());
-        
+
         for (int i = 0; i < siblings.size(); i++) {
             Menu sibling = siblings.get(i);
             sibling.setSortOrder(i);
@@ -243,10 +243,10 @@ public class MenuServiceImpl implements MenuService {
         dto.setSortOrder(menu.getSortOrder());
         dto.setParentId(menu.getParentId());
         dto.setChildren(new ArrayList<>());
-        
-        log.debug("Converting Menu to DTO - ID: {}, Name: {}, DB Visible: {}, DTO Visible: {}, MenuVisible: {}", 
-            menu.getId(), menu.getName(), menu.getVisible(), dto.isVisible(), dto.getMenuVisible());
-            
+
+        log.debug("Converting Menu to DTO - ID: {}, Name: {}, DB Visible: {}, DTO Visible: {}, MenuVisible: {}",
+                menu.getId(), menu.getName(), menu.getVisible(), dto.isVisible(), dto.getMenuVisible());
+
         return dto;
     }
 
@@ -283,19 +283,20 @@ public class MenuServiceImpl implements MenuService {
                 throw new IllegalStateException("Menu with type BOARD has no targetId for menuId: " + menuId);
             }
             BbsMasterDomain board = bbsMasterRepository.findById(menu.getTargetId())
-                    .orElseThrow(() -> new EntityNotFoundException("Board not found with id: " + menu.getTargetId() + " for menuId: " + menuId));
-            
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Board not found with id: " + menu.getTargetId() + " for menuId: " + menuId));
+
             // Assuming BbsMasterDomain.getSkinType() returns an Enum.
             // If it returns a String, just use board.getSkinType().
             String skinType = board.getSkinType() != null ? board.getSkinType().name() : null;
 
             dtoBuilder.boardId(board.getBbsId())
-                      .boardName(board.getBbsName())
-                      .boardSkinType(skinType)
-                      .boardReadAuth(board.getReadAuth())
-                      .boardWriteAuth(board.getWriteAuth())
-                      .boardAttachmentLimit(board.getAttachmentLimit())
-                      .boardAttachmentSize(board.getAttachmentSize());
+                    .boardName(board.getBbsName())
+                    .boardSkinType(skinType)
+                    .boardReadAuth(board.getReadAuth())
+                    .boardWriteAuth(board.getWriteAuth())
+                    .boardAttachmentLimit(board.getAttachmentLimit())
+                    .boardAttachmentSize(board.getAttachmentSize());
 
         } else if (MenuType.CONTENT.equals(menu.getType())) {
             // TODO: Implement logic for CONTENT type
@@ -314,4 +315,4 @@ public class MenuServiceImpl implements MenuService {
 
         return dtoBuilder.build();
     }
-} 
+}
