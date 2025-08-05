@@ -274,7 +274,7 @@ export const CompanyVisionCircles: React.FC = () => {
             color="#333"
             mb={{ base: 0, md: 2 }}
             textAlign={{ base: "center", md: "right" }}
-            display={{ base: "column", md: "flex" }}
+            display={{ base: "column", md: "flex-end" }}
           >
             지역경제 발전
           </Text>

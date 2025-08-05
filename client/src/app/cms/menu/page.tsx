@@ -23,6 +23,7 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { toaster, Toaster } from "@/components/ui/toaster";
 import { Main } from "@/components/layout/view/Main";
+import { MenuPreview } from "./components/MenuPreview";
 
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -530,7 +531,7 @@ export default function MenuManagementPage() {
           </Box>
 
           <Box>
-            <App />
+            <MenuPreview selectedMenu={selectedMenu} />
           </Box>
         </GridSection>
       </Box>
