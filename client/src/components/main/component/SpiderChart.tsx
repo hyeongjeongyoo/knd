@@ -18,10 +18,10 @@ const ChakraRect = chakra.rect;
 
 const SpiderChart = () => {
   const advantages = [
-    { text: "수소 생산 설비<br />파이프라인", position: "top" },
-    { text: "투자 유치<br />기념 협약식", position: "right" },
-    { text: "고온·고압<br />스팀 배관", position: "left" },
-    { text: "CO₂<br />흡수탑 설비", position: "bottom" },
+    { text: "수소가스 제조 및<br />공급", position: "top" },
+    { text: "부산물 활용<br />사업", position: "right" },
+    { text: "고온·고압<br />스팀", position: "left" },
+    { text: "친환경<br />에너지 솔루션", position: "bottom" },
   ];
 
   const movingPoints = [
