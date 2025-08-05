@@ -162,7 +162,7 @@ const PressTitleRenderer_Preview: React.FC<
     <HStack
       gap={1}
       alignItems="center"
-      justifyContent="center" // 가운데 정렬
+      justifyContent="flex-start"
       w="100%"
       h="100%"
       overflow="hidden"
@@ -180,29 +180,29 @@ const PressTitleRenderer_Preview: React.FC<
           color: titleHoverColor,
         }}
       >
-        <Box w="100%">
+        <HStack gap={0.5} alignItems="center" w="100%">
           <PostTitleDisplay title={post.title} postData={post} />
-        </Box>
+          {externalLinkHref && (
+            <ChakraLink
+              href={externalLinkHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              display="inline-flex"
+              onClick={(e) => e.stopPropagation()}
+              aria-label={`Open external link: ${externalLinkHref}`}
+            >
+              <Icon
+                as={LuExternalLink}
+                color={iconColor}
+                _hover={{ color: titleHoverColor }}
+                cursor="pointer"
+                boxSize={4}
+                flexShrink={0}
+              />
+            </ChakraLink>
+          )}
+        </HStack>
       </Box>
-
-      {externalLinkHref && (
-        <ChakraLink
-          href={externalLinkHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          display="inline-flex"
-          onClick={(e) => e.stopPropagation()}
-          aria-label={`Open external link: ${externalLinkHref}`}
-        >
-          <Icon
-            as={LuExternalLink}
-            color={iconColor}
-            _hover={{ color: titleHoverColor }}
-            cursor="pointer"
-            boxSize={4}
-          />
-        </ChakraLink>
-      )}
     </HStack>
   );
 };

@@ -49,9 +49,9 @@ const BasicBoardSkin: React.FC<BasicBoardSkinProps> = ({
   // 반응형 제목 글자수 제한
   const titleMaxLength =
     useBreakpointValue({
-      base: 15, // 모바일: 15자
-      md: 25, // 태블릿: 25자
-      lg: 35, // 데스크톱: 35자
+      base: 5, // 모바일: 15자
+      md: 20, // 태블릿: 25자
+      lg: 30, // 데스크톱: 35자
     }) || 15;
 
   // 제목 자르기 함수

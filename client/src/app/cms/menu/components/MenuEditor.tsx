@@ -231,18 +231,37 @@ export function MenuEditor({
       try {
         const response = await contentApi.getContents();
 
-        // ApiResponseSchema 형태의 응답 처리
-        const data = response.data?.data || response.data;
+        // response.data가 Content[] 형태인 경우와 래핑된 형태인 경우 모두 처리
+        const data = response.data as any;
 
-        if (!data || !Array.isArray(data.content)) {
-          console.warn("Content data is not in expected format:", data);
+        if (!data) {
+          console.warn("Content data is null or undefined:", data);
           return [];
         }
 
-        return data.content.map((content: ContentResponse) => ({
-          id: content.id,
-          name: content.name || content.title,
-        }));
+        // data가 배열인 경우 (Content[])
+        if (Array.isArray(data)) {
+          return data.map((content: any) => ({
+            id: content.id,
+            name: content.name || content.title,
+          }));
+        }
+
+        // data가 래핑된 객체인 경우 ({content: Content[]})
+        if (
+          data &&
+          typeof data === "object" &&
+          "content" in data &&
+          Array.isArray(data.content)
+        ) {
+          return data.content.map((content: any) => ({
+            id: content.id,
+            name: content.name || content.title,
+          }));
+        }
+
+        console.warn("Content data is not in expected format:", data);
+        return [];
       } catch (error) {
         console.error("Failed to fetch contents:", error);
         throw error;
