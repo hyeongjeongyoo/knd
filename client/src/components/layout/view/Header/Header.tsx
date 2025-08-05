@@ -216,17 +216,19 @@ export const Header = memo(function Header({
                 </Link>
               </Flex>
               <Flex flex={1} justify="center" align="center">
-                <DesktopNav
-                  menusWithLastFlag={menusWithLastFlag}
-                  isNavHovered={isNavHovered}
-                  isDark={isDark}
-                  currentPage={currentPage}
-                  isMainPage={isMainPage}
-                  lastHoveredMenuId={lastHoveredMenuId}
-                  onMenuHover={handleMenuHover}
-                  onMenuLeave={handleMenuLeave}
-                  isScrolled={isScrolled || isNavHovered}
-                />
+                <Box width="68%" maxWidth="68%">
+                  <DesktopNav
+                    menusWithLastFlag={menusWithLastFlag}
+                    isNavHovered={isNavHovered}
+                    isDark={isDark}
+                    currentPage={currentPage}
+                    isMainPage={isMainPage}
+                    lastHoveredMenuId={lastHoveredMenuId}
+                    onMenuHover={handleMenuHover}
+                    onMenuLeave={handleMenuLeave}
+                    isScrolled={isScrolled || isNavHovered}
+                  />
+                </Box>
               </Flex>
               <UtilityIcons
                 menus={menus}

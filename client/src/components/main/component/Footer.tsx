@@ -159,7 +159,7 @@ const Footer = () => {
       {showTopButton && (
         <Button
           position="fixed"
-          bottom="10rem"
+          bottom="2rem"
           right="2rem"
           bg="#4A7CD5"
           color="white"

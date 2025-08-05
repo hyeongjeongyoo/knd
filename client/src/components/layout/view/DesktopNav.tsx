@@ -40,13 +40,7 @@ export const DesktopNav = memo(
         zIndex={1000}
       >
         <Box>
-          <Flex
-            as="nav"
-            display={{ base: "none", md: "flex" }}
-            width="100%"
-            justifyContent="space-between"
-            alignItems="flex-start"
-          >
+          <Flex justifyContent="space-between" alignItems="flex-start">
             {menusWithLastFlag?.map((menu, index) => (
               <MemoizedMenuItem
                 key={`menu-${menu.id}-${index}-${menu.name}`}
