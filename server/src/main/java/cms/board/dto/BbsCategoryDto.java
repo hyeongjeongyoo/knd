@@ -23,7 +23,6 @@ public class BbsCategoryDto {
     private String code;
 
     @Schema(description = "카테고리 이름")
-    @NotBlank(message = "카테고리 이름은 필수 입력값입니다.")
     @Size(max = 100, message = "카테고리 이름은 100자 이하여야 합니다.")
     private String name;
 

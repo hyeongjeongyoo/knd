@@ -58,11 +58,28 @@ public class BbsArticleController {
     @Operation(summary = "게시글 생성", description = "새로운 게시글을 생성합니다.")
     @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<ApiResponseSchema<Long>> createArticle(
-            @RequestPart("articleData") BbsArticleDto articleDto,
+            @RequestPart("articleData") String articleDataJson,
             @RequestPart(value = "editorContentJson", required = false) String editorContentJson,
             @RequestPart(value = "mediaFiles", required = false) List<MultipartFile> mediaFiles,
             @RequestPart(value = "mediaLocalIds", required = false) String mediaLocalIds,
             @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
+
+        System.out.println("=== 게시글 생성 요청 시작 ===");
+        System.out.println("서버 컨트롤러 도달 확인");
+
+        // JSON 문자열을 BbsArticleDto로 파싱
+        BbsArticleDto articleDto;
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            articleDto = objectMapper.readValue(articleDataJson, BbsArticleDto.class);
+            System.out.println("✅ JSON 파싱 성공 - Title: " + articleDto.getTitle());
+        } catch (Exception e) {
+            System.out.println("❌ JSON 파싱 실패: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("JSON 파싱 실패: " + e.getMessage(), e);
+        }
+
         BbsArticleDto createdArticle = bbsArticleService.createArticle(articleDto, editorContentJson, mediaFiles,
                 mediaLocalIds, attachments);
         return ResponseEntity.ok(ApiResponseSchema.success(createdArticle.getNttId(), "게시글이 성공적으로 생성되었습니다."));
@@ -72,11 +89,22 @@ public class BbsArticleController {
     @PutMapping(value = "/{nttId}", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<ApiResponseSchema<Void>> updateArticle(
             @PathVariable Long nttId,
-            @RequestPart("articleData") BbsArticleDto articleDto,
+            @RequestPart("articleData") String articleDataJson,
             @RequestPart(value = "editorContentJson", required = false) String editorContentJson,
             @RequestPart(value = "mediaFiles", required = false) List<MultipartFile> mediaFiles,
             @RequestPart(value = "mediaLocalIds", required = false) String mediaLocalIds,
             @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
+
+        // JSON 문자열을 BbsArticleDto로 파싱
+        BbsArticleDto articleDto;
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            articleDto = objectMapper.readValue(articleDataJson, BbsArticleDto.class);
+        } catch (Exception e) {
+            throw new RuntimeException("JSON 파싱 실패: " + e.getMessage(), e);
+        }
+
         bbsArticleService.updateArticle(nttId, articleDto, editorContentJson, mediaFiles, mediaLocalIds, attachments);
         return ResponseEntity.ok(ApiResponseSchema.success(null, "게시글이 성공적으로 수정되었습니다."));
     }

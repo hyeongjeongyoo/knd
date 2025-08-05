@@ -120,7 +120,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(authz -> authz
 						.requestMatchers(this.permitAllRequestMatcher).permitAll()
 						.antMatchers(HttpMethod.GET, "/api/v1/cms/bbs/**").permitAll()
-						.antMatchers(HttpMethod.POST, "/api/v1/cms/bbs/article").authenticated()
+						.antMatchers(HttpMethod.POST, "/api/v1/cms/bbs/article").permitAll() // 임시 테스트용
 						.antMatchers(HttpMethod.PUT, "/api/v1/cms/bbs/article/**").authenticated()
 						.antMatchers(HttpMethod.DELETE, "/api/v1/cms/bbs/article/**").authenticated()
 						.antMatchers(

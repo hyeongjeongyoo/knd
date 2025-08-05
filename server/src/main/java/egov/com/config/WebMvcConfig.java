@@ -49,18 +49,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Bean
     public ErrorPageRegistrar errorPageRegistrar() {
-        return new ErrorPageRegistrar() {
-            @Override
-            public void registerErrorPages(ErrorPageRegistry registry) {
-                registry.addErrorPages(
-                    new ErrorPage(HttpStatus.NOT_FOUND, "/error/404"),
-                    new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR, "/error/500"),
-                    new ErrorPage(HttpStatus.FORBIDDEN, "/error/403")
-                );
-            }
-        };
+        return registry -> registry.addErrorPages(
+                new ErrorPage(HttpStatus.NOT_FOUND, "/error/404"),
+                new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR, "/error/500"),
+                new ErrorPage(HttpStatus.FORBIDDEN, "/error/403"));
     }
-} 
- 
- 
- 
+}
