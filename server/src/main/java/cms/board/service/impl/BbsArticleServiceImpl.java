@@ -19,11 +19,8 @@ import cms.common.exception.FilePolicyViolationException;
 import cms.file.service.FileService;
 import cms.file.entity.CmsFile;
 import cms.file.dto.AttachmentInfoDto;
-import cms.file.entity.CmsFile;
-import cms.file.service.FileService;
 import cms.menu.domain.Menu;
 import cms.menu.repository.MenuRepository;
-import cms.menu.domain.Menu;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -742,14 +739,21 @@ public class BbsArticleServiceImpl implements BbsArticleService {
             }
         }
 
-        List<BbsCategoryDto> categoryDtos = article.getCategories().stream()
-                .map(BbsArticleCategoryDomain::getCategory)
-                .map(category -> BbsCategoryDto.builder()
-                        .categoryId(category.getCategoryId())
-                        .code(category.getCode())
-                        .name(category.getName())
-                        .build())
-                .collect(Collectors.toList());
+        List<BbsCategoryDto> categoryDtos = Collections.emptyList();
+        try {
+            if (article.getCategories() != null) {
+                categoryDtos = article.getCategories().stream()
+                        .map(BbsArticleCategoryDomain::getCategory)
+                        .map(category -> BbsCategoryDto.builder()
+                                .categoryId(category.getCategoryId())
+                                .code(category.getCode())
+                                .name(category.getName())
+                                .build())
+                        .collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            log.error("Failed to fetch categories for article {}: {}", article.getNttId(), e.getMessage(), e);
+        }
 
         String skinTypeName = null;
         if (article.getBbsMaster() != null && article.getBbsMaster().getSkinType() != null) {

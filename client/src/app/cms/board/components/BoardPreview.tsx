@@ -173,7 +173,6 @@ const PressTitleRenderer_Preview: React.FC<
         minW={0}
         display="flex"
         alignItems="center"
-        justifyContent="center" // 가운데 정렬
         color={titleColor}
         fontWeight={isNoticeCategory ? "600" : "normal"} // 공지 카테고리는 굵게
         _hover={{

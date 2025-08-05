@@ -193,7 +193,7 @@ export const articleApi = {
     params: AnonymousArticleParams
   ): Promise<ApiResponse<{ nttId: number }>> => {
     const response = await privateApi.post<ApiResponse<{ nttId: number }>>(
-      "/cms/bbs/article/anonymous",             
+      "/cms/bbs/article/anonymous",
       params
     );
     return response.data;

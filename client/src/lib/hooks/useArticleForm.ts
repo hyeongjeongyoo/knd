@@ -84,6 +84,11 @@ export function useArticleForm({
   const [attachmentsToDelete, setAttachmentsToDelete] = useState<number[]>([]);
 
   const [files, setFiles] = useState<File[]>([]);
+  
+  // files가 변경될 때 newlyAddedFiles도 함께 업데이트
+  useEffect(() => {
+    setNewlyAddedFiles(files);
+  }, [files]);
   const [pendingMedia, setPendingMedia] = useState<Map<string, File>>(
     new Map()
   );
@@ -287,16 +292,8 @@ export function useArticleForm({
         postedAt: formData.postedAt || dayjs().format("YYYY-MM-DDTHH:mm:ss"),
       };
 
-      // 카테고리 처리 - 게시글 수정 시 명확한 카테고리 상태 전달
-      if (initialData?.nttId) {
-        // 기존 게시글 수정의 경우 - 카테고리 ID가 있으면 해당 카테고리로, 없으면 빈 배열
-        articleDtoPart.categoryIds = formData.categoryId ? [formData.categoryId] : [];
-      } else {
-        // 새 게시글 작성의 경우 - 카테고리 ID가 있을 때만 포함
-        if (formData.categoryId) {
-          articleDtoPart.categoryIds = [formData.categoryId];
-        }
-      }
+      // 카테고리 처리 - 카테고리 선택이 없어도 빈 배열로 명시적 전달
+      articleDtoPart.categoryIds = formData.categoryId ? [formData.categoryId] : [];
 
       // 2. Create FormData
       const dataToSend = new FormData();

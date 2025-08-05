@@ -66,6 +66,9 @@ public class BbsArticleController {
 
         System.out.println("=== 게시글 생성 요청 시작 ===");
         System.out.println("서버 컨트롤러 도달 확인");
+        System.out.println("Received articleDataJson: "
+                + (articleDataJson != null ? articleDataJson.substring(0, Math.min(200, articleDataJson.length()))
+                        : "null"));
 
         // JSON 문자열을 BbsArticleDto로 파싱
         BbsArticleDto articleDto;
@@ -74,8 +77,11 @@ public class BbsArticleController {
             objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
             articleDto = objectMapper.readValue(articleDataJson, BbsArticleDto.class);
             System.out.println("✅ JSON 파싱 성공 - Title: " + articleDto.getTitle());
+            System.out.println("✅ JSON 파싱 성공 - bbsId: " + articleDto.getBbsId());
+            System.out.println("✅ JSON 파싱 성공 - menuId: " + articleDto.getMenuId());
         } catch (Exception e) {
             System.out.println("❌ JSON 파싱 실패: " + e.getMessage());
+            System.out.println("❌ 원본 JSON: " + articleDataJson);
             e.printStackTrace();
             throw new RuntimeException("JSON 파싱 실패: " + e.getMessage(), e);
         }
