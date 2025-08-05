@@ -48,12 +48,7 @@ export const SitemapDrawer = memo(
 
     const [selectedCategoryKey, setSelectedCategoryKey] = useState<
       number | null
-    >(
-      menusWithLastFlag.filter((m) => m.children && m.children.length > 0)[0]
-        ?.id ||
-        menusWithLastFlag[0]?.id ||
-        null
-    );
+    >(null);
 
     const [hoveredMenuParent, setHoveredMenuParent] = useState<number | null>(
       null
@@ -303,7 +298,6 @@ export const SitemapDrawer = memo(
                             fontFamily="pretendard"
                             fontWeight={
                               hoveredMenuParent === menu.id ||
-                              selectedCategoryKey === menu.id ||
                               expandedMenu === menu.id
                                 ? "700"
                                 : "600"
@@ -316,8 +310,7 @@ export const SitemapDrawer = memo(
                                   ? "gray.100"
                                   : "gray.700",
                               xl:
-                                hoveredMenuParent === menu.id ||
-                                selectedCategoryKey === menu.id
+                                hoveredMenuParent === menu.id
                                   ? "#4A7CD5"
                                   : isDark
                                   ? "gray.100"
