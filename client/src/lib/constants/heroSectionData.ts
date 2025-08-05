@@ -68,7 +68,7 @@ export const HERO_DATA: Record<string, HeroPageData> = {
   },
 
   "/business/process": {
-    title: "PROCESS",
+    title: "BUSINESS",
     subtitle: "K&D Energen의 주요공정을 소개합니다",
     backgroundImage: "/images/sub/business_bg.jpg",
     height: "600px",

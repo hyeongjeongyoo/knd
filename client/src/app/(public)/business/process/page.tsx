@@ -93,7 +93,7 @@ export default function ProcessPage() {
     <Box>
       {/* 상단 배너 컴포넌트 */}
       <PageHeroBanner
-        title="PROCESS"
+        title="BUSINESS"
         subtitle="K&D Energen의 주요공정을 소개합니다"
         backgroundImage="/images/sub/business_bg.jpg"
         height="600px"

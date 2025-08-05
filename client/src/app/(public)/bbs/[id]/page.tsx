@@ -452,7 +452,7 @@ export default function BoardPage({
     switch (currentPathId) {
       case "notices":
         return {
-          title: "NOTICES",
+          title: "PR",
           fontFamily: "montserrat !important",
           subtitle: "K&D ENERGEN의 공지사항을 확인하세요",
           backgroundImage: "/images/sub/privacy_bg.jpg",
@@ -474,7 +474,7 @@ export default function BoardPage({
         };
       case "resources":
         return {
-          title: "뉴스/보도자료",
+          title: "PR",
           subtitle: "K&D ENERGEN의 최신 소식을 전해드립니다",
           backgroundImage: "/images/sub/privacy_bg.jpg",
           menuItems: [
