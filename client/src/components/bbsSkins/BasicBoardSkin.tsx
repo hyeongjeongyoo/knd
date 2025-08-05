@@ -26,6 +26,7 @@ import { LuEye } from "react-icons/lu";
 import GenericArticleCard from "@/components/common/cards/GenericArticleCard";
 import { mapPostToCommonCardData } from "@/lib/card-utils";
 import { CustomPagination } from "@/components/common/CustomPagination";
+import PostTitleDisplay from "@/components/common/PostTitleDisplay";
 
 interface BasicBoardSkinProps {
   pageDetails: PageDetailsDto;
@@ -298,32 +299,21 @@ const BasicBoardSkin: React.FC<BasicBoardSkinProps> = ({
                             fontWeight={isNoticeCategory ? "600" : "normal"}
                             title={post.title}
                           >
-                            {truncateTitle(post.title, titleMaxLength)}
-                          </Text>
-                          {post.hasImageInContent && (
-                            <Icon
-                              as={LuImage}
-                              color="#666"
-                              fontSize={{ base: "14px", md: "18px" }}
+                            <PostTitleDisplay
+                              title={truncateTitle(post.title, titleMaxLength)}
+                              postData={{
+                                hasImageInContent: post.hasImageInContent,
+                                hasAttachment: post.hasAttachment,
+                              }}
                             />
-                          )}
-                          {post.attachments && post.attachments.length > 0 && (
-                            <Icon
-                              color="#666"
-                              fontSize={{ base: "14px", md: "18px" }}
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
-                              />
-                            </Icon>
-                          )}
+                          </Text>
+
                           {post.externalLink && (
                             <Icon
                               as={LuExternalLink}
                               color="blue.400"
                               fontSize={{ base: "14px", md: "18px" }}
+                              flexShrink={0}
                             />
                           )}
                         </Flex>
