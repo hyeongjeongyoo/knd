@@ -145,10 +145,10 @@ function AppContent() {
   }, [currentCardIndex]);
 
   const stats = [
-    { category: "수소 생산", rank: "24000 Nm³/h" },
-    { category: "투자액", rank: "1500억 원" },
-    { category: "스팀 생산", rank: "80 t/h" },
-    { category: "CO₂ 포집", rank: "250 t/d" },
+    { category: "수소 생산", rank: "92,000 Nm³/h" },
+    { category: "투자액", rank: "2,185억 원" },
+    { category: "스팀 생산", rank: "86 t/h" },
+    { category: "CO₂ 포집", rank: "600 t/d" },
   ];
 
   const cards: Card[] = [
