@@ -1,7 +1,7 @@
 package cms.auth.service.impl;
 
 import cms.user.dto.CustomUserDetails;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -52,6 +52,7 @@ import cms.common.exception.DuplicateUsernameException;
 import cms.common.exception.NiceVerificationException;
 
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
@@ -61,23 +62,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JavaMailSender mailSender;
     private final UserRepository userRepository;
-
-    @Autowired(required = false)
-    private NiceService niceService;
-
-    @Autowired
-    public AuthServiceImpl(
-            AuthenticationManager authenticationManager,
-            JwtTokenProvider jwtTokenProvider,
-            PasswordEncoder passwordEncoder,
-            JavaMailSender mailSender,
-            UserRepository userRepository) {
-        this.authenticationManager = authenticationManager;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.passwordEncoder = passwordEncoder;
-        this.mailSender = mailSender;
-        this.userRepository = userRepository;
-    }
+    private final NiceService niceService;
 
     @Override
     @Transactional
@@ -91,21 +76,22 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseEntity<ApiResponseSchema<Map<String, Object>>> login(CustomUserDetails userDetails) {
         Map<String, Object> result = new HashMap<>();
-
+        
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(userDetails.getUsername(), userDetails.getPassword()));
+                new UsernamePasswordAuthenticationToken(userDetails.getUsername(), userDetails.getPassword())
+            );
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
             String accessToken = jwtTokenProvider.createAccessToken(customUserDetails.getUser());
             String refreshToken = jwtTokenProvider.createRefreshToken(customUserDetails.getUser());
-
+            
             result.put("accessToken", accessToken);
             result.put("refreshToken", refreshToken);
             result.put("user", customUserDetails);
             result.put("status", "success");
-
+            
             return ResponseEntity.ok(ApiResponseSchema.success(result, "로그인이 성공적으로 완료되었습니다."));
         } catch (Exception e) {
             result.put("status", "fail");
@@ -179,7 +165,7 @@ public class AuthServiceImpl implements AuthService {
         } catch (MailException e) {
             throw new IllegalArgumentException("이메일 전송에 실패했습니다.", e);
         }
-
+        
         return ResponseEntity.ok(ApiResponseSchema.success("비밀번호 재설정 이메일이 전송되었습니다."));
     }
 
@@ -197,8 +183,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<ApiResponseSchema<Void>> resetPassword(ResetPasswordRequest request,
-            UserDetails userDetails) {
+    public ResponseEntity<ApiResponseSchema<Void>> resetPassword(ResetPasswordRequest request, UserDetails userDetails) {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -217,8 +202,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<ApiResponseSchema<Void>> changePassword(Map<String, String> passwordMap,
-            CustomUserDetails user) {
+    public ResponseEntity<ApiResponseSchema<Void>> changePassword(Map<String, String> passwordMap, CustomUserDetails user) {
         User existingUser = userRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -237,12 +221,13 @@ public class AuthServiceImpl implements AuthService {
         try {
             // 사용자 인증
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             // 사용자 정보 조회
             User user = userRepository.findByUsername(request.getUsername())
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
             // JWT 토큰 생성
             String accessToken = jwtTokenProvider.createAccessToken(user);
@@ -257,21 +242,19 @@ public class AuthServiceImpl implements AuthService {
             result.put("accessToken", accessToken);
             result.put("refreshToken", refreshToken);
             result.put("tokenType", "Bearer");
-            result.put("user", new HashMap<String, Object>() {
-                {
-                    put("uuid", user.getUuid());
-                    put("username", user.getUsername());
-                    put("role", user.getRole());
-                }
-            });
+            result.put("user", new HashMap<String, Object>() {{
+                put("uuid", user.getUuid());
+                put("username", user.getUsername());
+                put("role", user.getRole());
+            }});
 
             return ResponseEntity.ok(ApiResponseSchema.success(result, "로그인이 성공적으로 완료되었습니다."));
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponseSchema.error("아이디 또는 비밀번호가 일치하지 않습니다.", "401"));
+                .body(ApiResponseSchema.error("아이디 또는 비밀번호가 일치하지 않습니다.","401" ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponseSchema.error("로그인 처리 중 오류가 발생했습니다.", "500"));
+                .body(ApiResponseSchema.error("로그인 처리 중 오류가 발생했습니다.","500" ));
         }
     }
 
@@ -295,59 +278,45 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void signup(SignupRequest request) {
-        log.info("[AuthService] signup attempt for username: {}", request.getUsername());
-
-        // NICE 서비스가 비활성화된 경우의 로직
-        if (niceService == null) {
-            log.warn("NiceService is not configured. Proceeding with signup without NICE verification.");
-
-            if (userRepository.existsByUsername(request.getUsername())) {
-                throw new DuplicateUsernameException("이미 사용 중인 사용자 ID입니다.");
-            }
-            if (userRepository.existsByEmail(request.getEmail())) {
-                throw new DuplicateEmailException("이미 사용 중인 이메일입니다.");
-            }
-
-            User user = User.builder()
-                    .uuid(UUID.randomUUID().toString())
-                    .username(request.getUsername())
-                    .password(passwordEncoder.encode(request.getPassword()))
-                    .name(request.getName())
-                    .email(request.getEmail())
-                    .phone(request.getPhone())
-                    .address(request.getAddress())
-                    .carNo(request.getCarNo())
-                    .gender(request.getGender())
-                    .role(UserRoleType.USER)
-                    .status("ACTIVE")
-                    .provider("LOCAL")
-                    .build();
-
-            userRepository.save(user);
-            log.info("[AuthService] User {} signed up successfully (without NICE verification).",
-                    request.getUsername());
-            return; // NICE 로직을 건너뛰고 종료
-        }
-
-        // NICE 서비스가 활성화된 경우의 기존 로직
-        log.info("[AuthService] NICE Service is active. Proceeding with NICE verification for key: {}",
-                request.getNiceResultKey());
+        log.info("[AuthService] signup attempt for username: {}, with niceResultKey: {}", request.getUsername(), request.getNiceResultKey());
         if (!StringUtils.hasText(request.getNiceResultKey())) {
+            log.error("[AuthService] NICE result key is missing for username: {}", request.getUsername());
             throw new NiceVerificationException("NICE 본인인증 정보가 누락되었습니다. 본인인증을 다시 진행해주세요.");
         }
 
-        NiceUserDataDto niceData = niceService.getVerifiedNiceUserDataForRegister(request.getNiceResultKey());
-        if (niceData == null) {
-            throw new NiceVerificationException("NICE 본인인증에 실패했거나 인증 정보가 만료되었습니다. 다시 시도해주세요.");
+        NiceUserDataDto niceData;
+        try {
+            niceData = niceService.getVerifiedNiceUserDataForRegister(request.getNiceResultKey());
+            if (niceData == null) {
+                log.warn("[AuthService] NICE verification failed or data not found for key: {}", request.getNiceResultKey());
+                throw new NiceVerificationException("NICE 본인인증에 실패했거나 인증 정보가 만료되었습니다. 다시 시도해주세요.");
+            }
+            log.info("[AuthService] NICE verification successful for username: {}, DI: {}", request.getUsername(), niceData.getDi());
+        } catch (RuntimeException e) { // Catch RuntimeException from NiceService
+            log.error("[AuthService] Error during NICE verification for username: {}. Error: {}", request.getUsername(), e.getMessage());
+            throw new NiceVerificationException("NICE 본인인증 중 오류가 발생했습니다: " + e.getMessage(), e);
         }
 
+        // Optional: Validate request data against NICE data
+        // if (!request.getName().equals(niceData.getName())) {
+        //     log.warn("[AuthService] Name mismatch - Request: {}, NICE: {}", request.getName(), niceData.getName());
+        //     throw new NiceVerificationException("본인인증 정보와 입력된 이름이 일치하지 않습니다.");
+        // }
+        // if (request.getBirthDate() != null && !request.getBirthDate().equals(niceData.getBirthDate())) {
+        //     log.warn("[AuthService] BirthDate mismatch - Request: {}, NICE: {}", request.getBirthDate(), niceData.getBirthDate());
+        //     throw new NiceVerificationException("본인인증 정보와 입력된 생년월일이 일치하지 않습니다.");
+        // }
+
         if (niceData.getDi() != null && userRepository.existsByDi(niceData.getDi())) {
+            log.warn("[AuthService] Duplicate DI found: {}", niceData.getDi());
             throw new DuplicateDiException("이미 해당 본인인증 정보로 가입된 계정이 존재합니다.");
         }
         if (userRepository.existsByUsername(request.getUsername())) {
+            log.warn("[AuthService] Duplicate username found: {}", request.getUsername());
             throw new DuplicateUsernameException("이미 사용 중인 사용자 ID입니다.");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
+            log.warn("[AuthService] Duplicate email found: {}", request.getEmail());
             throw new DuplicateEmailException("이미 사용 중인 이메일입니다.");
         }
 
@@ -355,19 +324,26 @@ public class AuthServiceImpl implements AuthService {
                 .uuid(UUID.randomUUID().toString())
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .name(niceData.getName())
+                .name(niceData.getName()) // Use name from NICE data
                 .email(request.getEmail())
-                .phone(niceData.getMobileNo())
-                .birthDate(niceData.getBirthDate())
-                .gender(niceData.getGender())
-                .di(niceData.getDi())
+                .phone(niceData.getMobileNo()) // Use phone from NICE data
+                .birthDate(niceData.getBirthDate()) // Use birthDate from NICE data
+                .gender(niceData.getGender()) // Use gender from NICE data
+                .di(niceData.getDi()) // Store DI (consider encryption)
                 .role(UserRoleType.USER)
                 .status("ACTIVE")
                 .provider("LOCAL")
                 .build();
 
-        userRepository.save(user);
-        log.info("[AuthService] User {} signed up successfully with NICE verification.", request.getUsername());
+        try {
+            userRepository.save(user);
+            log.info("[AuthService] User {} signed up successfully with UUID: {}", user.getUsername(), user.getUuid());
+        } catch (DataAccessException e) {
+            log.error("[AuthService] Database error during signup for username: {}. Error: {}", request.getUsername(), e.getMessage(), e);
+            // This could be a more specific exception based on the cause, e.g., ConstraintViolationException
+            // For now, a general runtime exception that will be caught by GlobalExceptionHandler
+            throw new RuntimeException("회원가입 처리 중 데이터베이스 오류가 발생했습니다. 관리자에게 문의해주세요.");
+        }
     }
 
     @Override
@@ -386,7 +362,9 @@ public class AuthServiceImpl implements AuthService {
         if (!available) {
             result.put("message", "이미 사용 중인 사용자 ID입니다.");
         }
-        return ResponseEntity
-                .ok(ApiResponseSchema.success(result, available ? "사용 가능한 사용자 ID입니다." : "이미 사용 중인 사용자 ID입니다."));
+        return ResponseEntity.ok(ApiResponseSchema.success(result, available ? "사용 가능한 사용자 ID입니다." : "이미 사용 중인 사용자 ID입니다."));
     }
-}
+} 
+ 
+ 
+ 

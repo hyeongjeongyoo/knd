@@ -7,7 +7,7 @@ import cms.content.exception.ContentNotFoundException;
 import cms.content.repository.ContentRepository;
 import cms.content.service.ContentService;
 import cms.template.domain.Template;
-
+import cms.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,30 +25,31 @@ public class ContentServiceImpl implements ContentService {
     public Long createContent(ContentDto contentDto) {
         // TODO: Get template and creator from appropriate sources
         Template template = null; // Get from template service
-        String creator = "admin"; // Default creator
-
+        User creator = null; // Get from security context
+        
         Content content = Content.createContent(
-                contentDto.getTitle(),
-                contentDto.getContent(),
-                template,
-                creator);
-
+            contentDto.getTitle(),
+            contentDto.getContent(),
+            template,
+            creator
+        );
+        
         if (contentDto.getExpiredAt() != null) {
             content.setExpiredAt(contentDto.getExpiredAt());
         }
-
+        
         return contentRepository.save(content).getId();
     }
 
     @Override
     public void updateContent(Long contentId, ContentDto contentDto) {
         Content content = contentRepository.findById(contentId)
-                .orElseThrow(() -> new ContentNotFoundException(contentId));
-
+            .orElseThrow(() -> new ContentNotFoundException(contentId));
+            
         content.setTitle(contentDto.getTitle());
         content.setContent(contentDto.getContent());
         content.setDescription(contentDto.getDescription());
-
+        
         if (contentDto.getExpiredAt() != null) {
             content.setExpiredAt(contentDto.getExpiredAt());
         }
@@ -57,7 +58,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public void deleteContent(Long contentId) {
         Content content = contentRepository.findById(contentId)
-                .orElseThrow(() -> new ContentNotFoundException(contentId));
+            .orElseThrow(() -> new ContentNotFoundException(contentId));
         content.setDeleted(true);
         contentRepository.save(content);
     }
@@ -66,7 +67,7 @@ public class ContentServiceImpl implements ContentService {
     @Transactional(readOnly = true)
     public ContentDto getContent(Long contentId) {
         Content content = contentRepository.findById(contentId)
-                .orElseThrow(() -> new ContentNotFoundException(contentId));
+            .orElseThrow(() -> new ContentNotFoundException(contentId));
         return convertToDto(content);
     }
 
@@ -74,28 +75,28 @@ public class ContentServiceImpl implements ContentService {
     @Transactional(readOnly = true)
     public Page<ContentDto> getContents(Pageable pageable) {
         return contentRepository.findAll(pageable)
-                .map(this::convertToDto);
+            .map(this::convertToDto);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ContentDto> searchContents(String keyword, Pageable pageable) {
         return contentRepository.searchContents(keyword, pageable)
-                .map(this::convertToDto);
+            .map(this::convertToDto);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ContentDto> getPublishedContents(Pageable pageable) {
         return contentRepository.findPublishedContents(pageable)
-                .map(this::convertToDto);
+            .map(this::convertToDto);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ContentDto> getContentsByStatus(ContentStatus status, Pageable pageable) {
         return contentRepository.findByStatus(status, pageable)
-                .map(this::convertToDto);
+            .map(this::convertToDto);
     }
 
     @Override
@@ -127,4 +128,4 @@ public class ContentServiceImpl implements ContentService {
         dto.setUpdatedAt(content.getUpdatedAt());
         return dto;
     }
-}
+} 

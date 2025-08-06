@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.MediaType;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -30,6 +31,7 @@ public class BbsArticleController {
     public ResponseEntity<ApiResponseSchema<Page<BbsArticleDto>>> getArticles(
             @RequestParam Long bbsId,
             @RequestParam Long menuId,
+            @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String keyword,
             Pageable pageable,
             Authentication authentication) {
@@ -41,6 +43,8 @@ public class BbsArticleController {
         Page<BbsArticleDto> articles;
         if (keyword != null && !keyword.trim().isEmpty()) {
             articles = bbsArticleService.searchArticles(bbsId, menuId, keyword, pageable, isAdmin);
+        } else if (categoryId != null) {
+            articles = bbsArticleService.getArticles(bbsId, menuId, categoryId, pageable, isAdmin);
         } else {
             articles = bbsArticleService.getArticles(bbsId, menuId, pageable, isAdmin);
         }
@@ -58,34 +62,11 @@ public class BbsArticleController {
     @Operation(summary = "게시글 생성", description = "새로운 게시글을 생성합니다.")
     @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<ApiResponseSchema<Long>> createArticle(
-            @RequestPart("articleData") String articleDataJson,
+            @RequestPart("articleData") @Valid BbsArticleDto articleDto,
             @RequestPart(value = "editorContentJson", required = false) String editorContentJson,
             @RequestPart(value = "mediaFiles", required = false) List<MultipartFile> mediaFiles,
             @RequestPart(value = "mediaLocalIds", required = false) String mediaLocalIds,
             @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
-
-        System.out.println("=== 게시글 생성 요청 시작 ===");
-        System.out.println("서버 컨트롤러 도달 확인");
-        System.out.println("Received articleDataJson: "
-                + (articleDataJson != null ? articleDataJson.substring(0, Math.min(200, articleDataJson.length()))
-                        : "null"));
-
-        // JSON 문자열을 BbsArticleDto로 파싱
-        BbsArticleDto articleDto;
-        try {
-            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
-            articleDto = objectMapper.readValue(articleDataJson, BbsArticleDto.class);
-            System.out.println("✅ JSON 파싱 성공 - Title: " + articleDto.getTitle());
-            System.out.println("✅ JSON 파싱 성공 - bbsId: " + articleDto.getBbsId());
-            System.out.println("✅ JSON 파싱 성공 - menuId: " + articleDto.getMenuId());
-        } catch (Exception e) {
-            System.out.println("❌ JSON 파싱 실패: " + e.getMessage());
-            System.out.println("❌ 원본 JSON: " + articleDataJson);
-            e.printStackTrace();
-            throw new RuntimeException("JSON 파싱 실패: " + e.getMessage(), e);
-        }
-
         BbsArticleDto createdArticle = bbsArticleService.createArticle(articleDto, editorContentJson, mediaFiles,
                 mediaLocalIds, attachments);
         return ResponseEntity.ok(ApiResponseSchema.success(createdArticle.getNttId(), "게시글이 성공적으로 생성되었습니다."));
@@ -95,22 +76,11 @@ public class BbsArticleController {
     @PutMapping(value = "/{nttId}", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<ApiResponseSchema<Void>> updateArticle(
             @PathVariable Long nttId,
-            @RequestPart("articleData") String articleDataJson,
+            @RequestPart("articleData") @Valid BbsArticleDto articleDto,
             @RequestPart(value = "editorContentJson", required = false) String editorContentJson,
             @RequestPart(value = "mediaFiles", required = false) List<MultipartFile> mediaFiles,
             @RequestPart(value = "mediaLocalIds", required = false) String mediaLocalIds,
             @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
-
-        // JSON 문자열을 BbsArticleDto로 파싱
-        BbsArticleDto articleDto;
-        try {
-            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
-            articleDto = objectMapper.readValue(articleDataJson, BbsArticleDto.class);
-        } catch (Exception e) {
-            throw new RuntimeException("JSON 파싱 실패: " + e.getMessage(), e);
-        }
-
         bbsArticleService.updateArticle(nttId, articleDto, editorContentJson, mediaFiles, mediaLocalIds, attachments);
         return ResponseEntity.ok(ApiResponseSchema.success(null, "게시글이 성공적으로 수정되었습니다."));
     }

@@ -1,5 +1,9 @@
 package cms.user.service.impl;
 
+import cms.enroll.domain.Enroll;
+import cms.enroll.repository.EnrollRepository;
+import cms.payment.domain.Payment;
+import cms.payment.repository.PaymentRepository;
 import cms.user.domain.User;
 import cms.user.domain.UserRoleType;
 import cms.user.domain.UserSpecification;
@@ -10,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import java.util.List;
-import java.util.ArrayList;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,8 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EnrollRepository enrollRepository;
+    private final PaymentRepository paymentRepository;
 
     @Override
     @Transactional
@@ -105,9 +109,57 @@ public class UserServiceImpl implements UserService {
             userPage = userRepository.findAll(spec, pageable);
         }
 
-        // 임시로 빈 결과 반환 (TODO: 필요시 구현)
+        List<String> validPayStatuses = Arrays.asList("PAID", "REFUNDED", "PARTIAL_REFUNDED");
+        long startIndex = pageable.getOffset();
+
         List<UserEnrollmentHistoryDto> dtoList = new ArrayList<>();
-        return new PageImpl<>(dtoList, pageable, 0);
+        int indexCounter = 0;
+
+        // 2. 조회된 페이지의 사용자에 대해서만 수강이력 조회
+        for (User user : userPage.getContent()) {
+            List<Enroll> enrollments = enrollRepository
+                    .findByUserUuidAndPayStatusInOrderByLesson_StartDateDesc(user.getUuid(), validPayStatuses);
+
+            List<EnrollmentDetailDto> historyDtos = enrollments.stream()
+                    .map(enroll -> {
+                        Payment payment = paymentRepository
+                                .findByEnroll_EnrollIdOrderByCreatedAtDesc(enroll.getEnrollId())
+                                .stream().findFirst().orElse(null);
+
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+
+                        return EnrollmentDetailDto.builder()
+                                .enrollmentId(enroll.getEnrollId())
+                                .lessonTitle(enroll.getLesson().getTitle())
+                                .lessonMonth(enroll.getLesson().getStartDate().format(formatter))
+                                .lessonTime(enroll.getLesson().getLessonTime())
+                                .payStatus(enroll.getPayStatus())
+                                .paymentDate(payment != null ? payment.getCreatedAt() : enroll.getCreatedAt())
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+
+            // 결제일을 기준으로 내림차순(최신순)으로 정렬합니다.
+            historyDtos.sort(Comparator.comparing(EnrollmentDetailDto::getPaymentDate,
+                    Comparator.nullsLast(Comparator.reverseOrder())));
+
+            EnrollmentDetailDto lastEnrollment = historyDtos.isEmpty() ? null : historyDtos.get(0);
+
+            dtoList.add(UserEnrollmentHistoryDto.builder()
+                    .index(startIndex + indexCounter + 1)
+                    .uuid(user.getUuid())
+                    .username(user.getUsername())
+                    .name(user.getName())
+                    .phone(user.getPhone())
+                    .carNo(user.getCarNo())
+                    .status(user.getStatus())
+                    .lastEnrollment(lastEnrollment)
+                    .enrollmentHistory(historyDtos)
+                    .build());
+            indexCounter++;
+        }
+
+        return new PageImpl<>(dtoList, pageable, userPage.getTotalElements());
     }
 
     @Override

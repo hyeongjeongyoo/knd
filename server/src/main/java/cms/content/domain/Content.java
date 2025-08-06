@@ -1,7 +1,7 @@
 package cms.content.domain;
 
 import cms.template.domain.Template;
-
+import cms.user.domain.User;
 import javax.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -39,11 +39,13 @@ public class Content {
     @Column(name = "STATUS", nullable = false, length = 20)
     private ContentStatus status;
 
-    @Column(name = "CREATOR_ID", nullable = false, length = 255)
-    private String creator;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CREATOR_ID", nullable = false, referencedColumnName = "uuid")
+    private User creator;
 
-    @Column(name = "UPDATER_ID", length = 255)
-    private String updater;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "UPDATER_ID", referencedColumnName = "uuid")
+    private User updater;
 
     @Column(name = "PUBLISHED_AT")
     private LocalDateTime publishedAt;
@@ -76,7 +78,7 @@ public class Content {
         this.isDeleted = false;
     }
 
-    public static Content createContent(String title, String content, Template template, String creator) {
+    public static Content createContent(String title, String content, Template template, User creator) {
         return Content.builder()
                 .title(title)
                 .content(content)

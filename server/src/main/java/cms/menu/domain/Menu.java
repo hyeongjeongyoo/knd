@@ -1,30 +1,15 @@
 package cms.menu.domain;
 
+import javax.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import cms.user.domain.User;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import cms.content.domain.ContentBlock;
 
 @Entity
 @Table(name = "menu", uniqueConstraints = {
@@ -71,8 +56,14 @@ public class Menu {
     @Builder.Default
     private List<Menu> children = new ArrayList<>();
 
-    @Column(name = "created_by", length = 255)
-    private String createdBy;
+    @OneToMany(mappedBy = "menu", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC")
+    @Builder.Default
+    private List<ContentBlock> contentBlocks = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", referencedColumnName = "uuid")
+    private User createdBy;
 
     @Column(name = "created_ip", length = 45)
     private String createdIp;
@@ -81,8 +72,9 @@ public class Menu {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_by", length = 255)
-    private String updatedBy;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_by", referencedColumnName = "uuid")
+    private User updatedBy;
 
     @Column(name = "updated_ip", length = 45)
     private String updatedIp;
@@ -118,6 +110,16 @@ public class Menu {
 
     public void setSortOrder(int sortOrder) {
         this.sortOrder = sortOrder;
+    }
+
+    public void addChild(Menu child) {
+        children.add(child);
+        child.setParentId(this.id);
+    }
+
+    public void removeChild(Menu child) {
+        children.remove(child);
+        child.setParentId(null);
     }
 
     public void updateTargetId(Long targetId) {

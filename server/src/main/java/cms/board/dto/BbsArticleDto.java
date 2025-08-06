@@ -5,10 +5,12 @@ import lombok.*;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
 import cms.file.dto.AttachmentInfoDto;
+import cms.board.dto.BbsCategoryDto;
 
 @Getter
 @Setter
@@ -69,6 +71,13 @@ public class BbsArticleDto {
     @Schema(description = "조회수")
     private Integer hits;
 
+    @Schema(description = "노출 작성자")
+    @Size(max = 50, message = "노출 작성자는 50자 이하여야 합니다.")
+    private String displayWriter;
+
+    @Schema(description = "노출 게시일")
+    private LocalDateTime postedAt;
+
     @Schema(description = "내용 중 이미지 포함 여부")
     private boolean hasImageInContent;
 
@@ -94,15 +103,15 @@ public class BbsArticleDto {
     @Schema(description = "순번")
     private Integer no;
 
-    @Schema(description = "게시 일시")
-    private LocalDateTime postedAt;
+    @Schema(description = "첨부파일 ID 목록")
+    private List<Long> attachmentIds;
 
-    @Schema(description = "표시용 작성자")
-    private String displayWriter;
+    @Schema(description = "이미지 ID 목록")
+    private List<Long> imageIds;
 
-    @Schema(description = "카테고리 ID 목록")
+    @Schema(description = "카테고리 ID 목록 (입력용)")
     private List<Long> categoryIds;
 
-    @Schema(description = "카테고리 목록")
+    @Schema(description = "카테고리 정보 목록 (출력용)")
     private List<BbsCategoryDto> categories;
 }

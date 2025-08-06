@@ -60,6 +60,12 @@ public class SecurityConfig {
 	@Value("${cors.allowed-origins}")
 	private String corsAllowedOrigins;
 
+	@Value("${app.environment.cors-enabled:true}")
+	private boolean corsEnabled;
+
+	@Value("${app.environment.name:local}")
+	private String environmentName;
+
 	@Bean
 	public static RequestMatcher permitAllRequestMatcherBean() {
 		List<RequestMatcher> matchers = new ArrayList<>();
@@ -85,22 +91,24 @@ public class SecurityConfig {
 				"/api/v1/cms/popups/active",
 				"/api/v1/swimming/lessons/**",
 				"/api/v1/nice/checkplus/**",
-				"/api/v1/group-reservations");
+				"/api/v1/group-reservations",
+				"/api/v1/external/**");
 		for (String pattern : permitAllAntPatterns) {
 			matchers.add(new AntPathRequestMatcher(pattern));
 		}
 
 		// GET 요청에 대해서만 허용할 경로 목록
 		List<String> getOnlyPatterns = Arrays.asList(
+				"/api/v1/cms/contents/main",
 				"/api/v1/cms/bbs/article",
 				"/api/v1/cms/bbs/article/**",
 				"/api/v1/cms/bbs/article/board/**",
 				"/api/v1/cms/bbs",
 				"/api/v1/cms/bbs/**",
+				"/api/v1/cms/bbs/voice/read/**/comments", // 댓글 조회 허용
 				"/api/v1/cms/schedule/**",
 				"/api/v1/cms/enterprises",
-				"/api/v1/cms/enterprises/{id}",
-				"/api/v1/cms/menu");
+				"/api/v1/cms/enterprises/{id}");
 
 		for (String pattern : getOnlyPatterns) {
 			matchers.add(new AntPathRequestMatcher(pattern, HttpMethod.GET.toString()));
@@ -111,16 +119,24 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+		// CORS 설정을 환경변수에 따라 조건부로 적용
+		if (corsEnabled) {
+			http.cors().configurationSource(corsConfigurationSource());
+		} else {
+			http.cors().disable();
+		}
+
 		http
-				.cors().configurationSource(corsConfigurationSource())
-				.and()
 				.csrf().disable()
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 				.and()
 				.authorizeHttpRequests(authz -> authz
 						.requestMatchers(this.permitAllRequestMatcher).permitAll()
 						.antMatchers(HttpMethod.GET, "/api/v1/cms/bbs/**").permitAll()
-						.antMatchers(HttpMethod.POST, "/api/v1/cms/bbs/article").permitAll() // 임시 테스트용
+						.antMatchers(HttpMethod.POST, "/cms/bbs/voice/read/**/comments").authenticated()
+						.antMatchers(HttpMethod.PUT, "/cms/bbs/voice/read/**/comments/**").authenticated()
+						.antMatchers(HttpMethod.DELETE, "/cms/bbs/voice/read/**/comments/**").authenticated()
+						.antMatchers(HttpMethod.POST, "/api/v1/cms/bbs/article").authenticated()
 						.antMatchers(HttpMethod.PUT, "/api/v1/cms/bbs/article/**").authenticated()
 						.antMatchers(HttpMethod.DELETE, "/api/v1/cms/bbs/article/**").authenticated()
 						.antMatchers(
@@ -135,10 +151,8 @@ public class SecurityConfig {
 						.antMatchers(
 								HttpMethod.POST, "/api/v1/cms/payments/**")
 						.hasAnyRole("ADMIN", "SYSTEM_ADMIN")
-						.antMatchers(HttpMethod.POST, "/api/v1/cms/menu").authenticated()
-						.antMatchers(HttpMethod.PUT, "/api/v1/cms/menu/**").authenticated()
-						.antMatchers(HttpMethod.DELETE, "/api/v1/cms/menu/**").authenticated()
 						.antMatchers(
+								"/api/v1/cms/menu",
 								"/api/v1/cms/menu/type/**",
 								"/api/v1/cms/bbs/master/**",
 								"/api/v1/cms/content",
@@ -176,7 +190,7 @@ public class SecurityConfig {
 	protected CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
 
-		// 개발환경용 Origin 설정
+		// 환경별 Origin 설정
 		String[] origins = corsAllowedOrigins.split(",");
 		configuration.setAllowedOriginPatterns(Arrays.asList(origins));
 		configuration.setAllowedMethods(Arrays.asList("HEAD", "POST", "GET", "DELETE", "PUT", "PATCH", "OPTIONS"));

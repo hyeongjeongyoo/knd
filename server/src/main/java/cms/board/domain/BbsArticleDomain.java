@@ -1,32 +1,15 @@
 package cms.board.domain;
 
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import javax.persistence.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "bbs_article", indexes = {
@@ -90,6 +73,12 @@ public class BbsArticleDomain {
     @Column(nullable = false)
     private int hits;
 
+    @Column(nullable = false)
+    private LocalDateTime postedAt;
+
+    @Column(length = 50)
+    private String displayWriter;
+
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     private boolean hasImageInContent = false;
 
@@ -117,13 +106,7 @@ public class BbsArticleDomain {
     @JoinColumn(name = "menu_id", nullable = false)
     private cms.menu.domain.Menu menu;
 
-    @Column
-    private LocalDateTime postedAt;
-
-    @Column(length = 50)
-    private String displayWriter;
-
-    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<BbsArticleCategoryDomain> categories = new ArrayList<>();
 
@@ -158,25 +141,15 @@ public class BbsArticleDomain {
         this.displayWriter = displayWriter;
     }
 
+    public void updateHits(int hits) {
+        this.hits = hits;
+    }
+
     public void increaseHits() {
         this.hits++;
     }
 
-    public void updateHits(Integer hits) {
-        if (hits != null && hits >= 0) {
-            this.hits = hits;
-        }
-    }
-
     public void setContent(String content) {
         this.content = content;
-    }
-
-    // null 안전성을 위한 categories getter 오버라이드
-    public List<BbsArticleCategoryDomain> getCategories() {
-        if (this.categories == null) {
-            this.categories = new ArrayList<>();
-        }
-        return this.categories;
     }
 }

@@ -674,32 +674,24 @@ public class BbsArticleServiceImpl implements BbsArticleService {
 
     private Page<BbsArticleDto> toDtoPageWithArticleNumber(Page<BbsArticleDomain> articlesPage, Pageable pageable,
             Long bbsId, Long menuId, boolean isAdmin) {
-        long totalElements = articlesPage.getTotalElements();
-        int pageNumber = pageable.getPageNumber();
-        int pageSize = pageable.getPageSize();
-
-        // 공지사항을 제외한 일반글 수만 카운트
-        // 현재는 발행된 글만 카운트 (관리자도 동일하게 적용)
-        long nonNoticeCount = bbsArticleRepository.countByBbsIdAndMenuIdAndNoticeStateNot(bbsId, menuId, "Y");
-
         List<BbsArticleDto> dtos = new ArrayList<>();
         List<BbsArticleDomain> articles = articlesPage.getContent();
+        long totalElements = articlesPage.getTotalElements();
 
-        // 현재 페이지에서 일반글의 순서를 계산하기 위한 인덱스
-        int nonNoticeIndexInPage = 0;
+        // 전체 일반글(비공지) 수를 계산
+        long totalNonNoticeCount = bbsArticleRepository.countByBbsIdAndMenuIdAndNoticeStateNot(bbsId, menuId, "Y");
 
-        for (int i = 0; i < articles.size(); i++) {
-            BbsArticleDomain article = articles.get(i);
+        for (BbsArticleDomain article : articles) {
             BbsArticleDto dto = convertToDto(article);
 
-            // 공지사항인 경우 번호 없음, 일반글만 번호 부여
             if ("Y".equals(article.getNoticeState())) {
                 dto.setNo(0); // 공지사항은 번호 0 (번호 표시 안함)
             } else {
-                long currentNonNoticeGlobalIndex = (long) pageNumber * pageSize + nonNoticeIndexInPage;
-                long articleNo = nonNoticeCount - currentNonNoticeGlobalIndex;
-                dto.setNo((int) Math.max(1, articleNo)); // 최소 1번
-                nonNoticeIndexInPage++;
+                // 현재 게시글과 같거나 이후에 작성된 일반글의 수를 계산 (자신을 포함)
+                long currentAndLaterCount = bbsArticleRepository.countNonNoticeArticlesAfterOrEqual(bbsId, menuId,
+                        article.getNttId());
+                // 게시글 번호 = 자신보다 이전에 작성된 일반글의 수 + 1
+                dto.setNo((int) (totalNonNoticeCount - currentAndLaterCount + 1));
             }
             dtos.add(dto);
         }
